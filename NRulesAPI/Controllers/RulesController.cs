@@ -10,6 +10,24 @@ namespace NRulesAPI.Controllers
     [Route("[controller]")]
     public class RulesController : ControllerBase
     {
+        private readonly List<Student> students;
+        private readonly List<Matricula> matriculas;
+
+        public RulesController()
+        {
+            students = new List<Student> {
+                new Student(1, "Carlos") ,
+                new Student(2, "Maca") ,
+                new Student(3, "Juan") ,
+            };
+            matriculas = new List<Matricula>
+            {
+                new Matricula(3500, 13, FinanceTypes.Finance, students[0]),
+                new Matricula(4500, 16, FinanceTypes.Refinance, students[1]),
+                new Matricula(2000, 1, FinanceTypes.Cash, students[2])
+            };
+        }
+
 
         [HttpGet]
         public IActionResult Get()
@@ -23,20 +41,16 @@ namespace NRulesAPI.Controllers
             //Create a working session
             var session = factory.CreateSession();
 
-            //Load domain model
-            var student = new Student(1, "Carlos");
-            var order1 = new Matricula(3500, 13, FinanceTypes.Finance, student);
-            var order2 = new Matricula(2000, 1, FinanceTypes.Cash, student);
-
             //Insert facts into rules engine's memory
-            session.Insert(student);
-            session.Insert(order1);
-            session.Insert(order2);
+            session.TryInsertAll(students);
+
+            session.TryInsertAll(matriculas);
+
 
             //Start match/resolve/act cycle
             session.Fire();
 
-            return new OkObjectResult(new List<Matricula> { order1, order2 });
+            return new OkObjectResult(matriculas);
         }
     }
 }

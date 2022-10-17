@@ -3,30 +3,31 @@ using NRulesAPI.Entities;
 
 namespace NRulesAPI.Rules
 {
+    [Repeatability(NRules.RuleModel.RuleRepeatability.NonRepeatable)]
     public class StudentInterestsRules : Rule
     {
         public override void Define()
         {
             Student student = default;
-            IEnumerable<Matricula> orders = default;
+            IEnumerable<Matricula> matriculas = default;
 
             When()
                 .Match<Student>(() => student)
-                .Query(() => orders, x => x
+                .Query(() => matriculas, x => x
                     .Match<Matricula>(
-                        o => o.Student == student,
+                        m => m.Student == student,
                         m => m.FinanceType > FinanceTypes.Cash,
-                        o => o.Payments > 12,
-                        o => o.Interests == 0.0M)
+                        m => m.Payments > 12,
+                        m => m.Interests == 0.0M)
                     .Collect()
                     .Where(c => c.Any()));
 
             Then()
-                .Do(ctx => ApplyDiscount(orders))
-                .Do(ctx => ctx.UpdateAll(orders));
+                .Do(ctx => ApplyInterests(matriculas))
+                .Do(ctx => ctx.UpdateAll(matriculas));
         }
 
-        private static void ApplyDiscount(IEnumerable<Matricula> matriculas)
+        private static void ApplyInterests(IEnumerable<Matricula> matriculas)
         {
             foreach (var matricula in matriculas)
             {
